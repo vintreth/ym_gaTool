@@ -8,10 +8,8 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * @author kbogdanov 14.03.16
@@ -22,8 +20,6 @@ public class YandexClient {
     private static final String OAUTH_PARAM_RESPONSE_TYPE = "token";
     private static final String CLIENT_ID = "NOT_A_PASSWORD_ACTUALLY";
 
-    private static final String PASSWORD = "NOT_A_PASSWORD_ACTUALLY";
-    private static final String CALLBACK_URL = "https://oauth.yandex.ru/verification_code";
     private static final String TOKEN = "253d7248653e4a0fa2d78a6070fa56e6";
 
     private static final String API_URL_STAT = "https://api-metrika.yandex.ru/stat/v1/data/";
@@ -33,31 +29,12 @@ public class YandexClient {
 
     private static Logger logger = Logger.getLogger("YandexClient");
 
-    //todo write code
-    public void authorize() throws YandexClientException {
-        logger.debug("Starting to authorize");
-        try {
-            String OAuthUrl = prepareOAuthUrl();
-            logger.debug("Sending a request to " + OAuthUrl);
-
-            URL url = new URL(OAuthUrl);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream(), "UTF-8"));
-            String line;
-            while (null != (line = reader.readLine())) {
-                System.out.println(line);
-            }
-        } catch (IOException e) {
-            logger.error("Authorization error", e);
-            throw new YandexClientException("Failure to client authorize", e);
-        }
-    }
-
     /**
-     * Prepares OAuth url
+     * Retrieves token from api
      *
      * @return url
      */
-    private String prepareOAuthUrl() {
+    public String getToken() {
         return AUTHORIZATION_URL + "?response_type=" + OAUTH_PARAM_RESPONSE_TYPE + "&client_id=" + CLIENT_ID;
     }
 
@@ -68,14 +45,21 @@ public class YandexClient {
      * @param httpQuery map of query parameters
      * @return full url
      */
-    private String buildApiUrl(String apiMethod, Map<String, String> httpQuery) {
+    private String buildApiUrl(String apiMethod, Map<String, String> httpQuery) throws YandexClientException {
         String apiUrl = API_URL_STAT + apiMethod + '?';
         httpQuery.put("id", String.valueOf(YA_METRIKA_ID));
         httpQuery.put("oauth_token", TOKEN);
 
         List<String> httpQueryParams = new ArrayList<>();
         for (Map.Entry<String, String> entry : httpQuery.entrySet()) {
-            httpQueryParams.add(entry.getKey() + "=" + entry.getValue());
+            try {
+                httpQueryParams.add(
+                        URLEncoder.encode(entry.getKey(), "UTF-8") + "=" + URLEncoder.encode(entry.getValue(), "UTF-8")
+                );
+            } catch (UnsupportedEncodingException e) {
+                logger.error("Failure to encode params", e);
+                throw new YandexClientException("Failure to encode params", e);
+            }
         }
 
         return apiUrl + String.join("&", httpQueryParams);
@@ -86,16 +70,26 @@ public class YandexClient {
      *
      * @throws YandexClientException
      */
-    public void getDataByTime() throws YandexClientException {
-        logger.debug("Preparing to get data from api");
-
+    public void getDataByTime(Date from, Date to) throws YandexClientException {
         Map<String, String> httpQuery = new HashMap<>();
-        try {
-            httpQuery.put("dimensions", URLEncoder.encode("ym:s:<attribution>SearchPhrase", "UTF-8"));
-        } catch (UnsupportedEncodingException e) {
-            logger.error("Failure to encode params", e);
-            throw new YandexClientException("Failure to encode params", e);
-        }
+
+        httpQuery.put("dimensions", "ym:s:searchPhrase,ym:s:paramsLevel2");
+        httpQuery.put("metrics", "ym:s:visits");
+        httpQuery.put(
+                "filters",
+                "ym:s:<attribution>SourceEngineName=='Яндекс' AND ym:s:paramsLevel1=='gaClientId'"
+        );
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        httpQuery.put("date1", dateFormat.format(from));
+        httpQuery.put("date2", dateFormat.format(to));
+        httpQuery.put("top_keys", "30");
+
+        logger.debug(
+                "Preparing to get data by time from api. From: "
+                        + httpQuery.get("date1")
+                        + ", to: " + httpQuery.get("date2")
+        );
 
         String apiUrl = buildApiUrl(API_METHOD_BYTIME, httpQuery);
 

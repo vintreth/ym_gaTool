@@ -2,6 +2,8 @@ package ru.names.ym_gaTool;
 
 import org.apache.log4j.Logger;
 
+import java.util.Date;
+
 /**
  * @author kbogdanov 14.03.16
  */
@@ -25,9 +27,11 @@ public class Launcher {
         logger.debug("Running the application");
         try {
             YandexClient yandexClient = new YandexClient();
-            //logger.debug("Trying to authorize yandex client");
-            //yandexClient.authorize();
-            yandexClient.getDataByTime();
+            Date from = new Date();
+            Date to = new Date(from.getTime() + 86400 * 1000);
+            //todo write code
+            yandexClient.getDataByTime(from, to);
+
         } catch (YandexClientException e) {
             logger.error(e.getMessage(), e);
         }
