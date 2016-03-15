@@ -12,6 +12,13 @@
         <jdk.version>1.8</jdk.version>
     </properties>
 
+    <repositories>
+        <repository>
+            <id>project-repository</id>
+            <url>${project.basedir}/lib</url>
+        </repository>
+    </repositories>
+
     <dependencies>
         <dependency>
             <groupId>log4j</groupId>
@@ -58,6 +65,11 @@
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
+                    <archive>
+                        <manifest>
+                            <mainClass>ru.names.ym_gaTool.Launcher</mainClass>
+                        </manifest>
+                    </archive>
                 </configuration>
             </plugin>
         </plugins>
