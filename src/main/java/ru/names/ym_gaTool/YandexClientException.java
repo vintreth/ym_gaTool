@@ -3,16 +3,17 @@ package ru.names.ym_gaTool;
 /**
  * @author kbogdanov 14.03.16
  */
-public class YandexClientException extends Throwable {
-    public YandexClientException(String s) {
-        super(s);
+public class YandexClientException extends BaseException {
+
+    public YandexClientException(String message) {
+        super(message);
     }
 
-    public YandexClientException(String s, Throwable t) {
-        super(s, t);
+    public YandexClientException(String message, Throwable cause) {
+        super(message, cause);
     }
 
-    public YandexClientException(Throwable t) {
-        super(t);
+    public YandexClientException(Throwable cause) {
+        super(cause);
     }
 }

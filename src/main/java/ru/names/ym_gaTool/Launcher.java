@@ -25,10 +25,11 @@ public class Launcher {
         logger.debug("Running the application");
         try {
             YandexClient yandexClient = new YandexClient();
-            logger.debug("Trying to authorize yandex client");
-            yandexClient.authorize();
+            //logger.debug("Trying to authorize yandex client");
+            //yandexClient.authorize();
+            yandexClient.getDataByTime();
         } catch (YandexClientException e) {
-            System.err.println(e.getMessage());
+            logger.error(e.getMessage(), e);
         }
     }
 
