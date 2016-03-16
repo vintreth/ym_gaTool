@@ -96,6 +96,7 @@ class YandexClient {
         String apiUrl = buildApiUrl(API_METHOD_TABLE, httpQuery);
         String response = getData(apiUrl);
 
+        logger.debug("Parsing a json");
         ObjectMapper objectMapper = new ObjectMapper();
         Table table;
         try {
