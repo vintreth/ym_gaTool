@@ -4,11 +4,8 @@ import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
 import ru.names.ym_gaTool.api.response.yandex.Table;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.net.URL;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -16,7 +13,7 @@ import java.util.*;
 /**
  * @author kbogdanov 14.03.16
  */
-class YandexClient {
+class YandexClient extends AbstractClient {
 
     private static final String AUTHORIZATION_URL = "https://oauth.yandex.ru/authorize";
     private static final String OAUTH_PARAM_RESPONSE_TYPE = "token";
@@ -31,6 +28,9 @@ class YandexClient {
     private static final int YA_METRIKA_ID = NOT_A_PASSWORD_ACTUALLY;
 
     private static Logger logger = Logger.getLogger("YandexClient");
+
+    private void authorize() {
+    }
 
     /**
      * Retrieves token from api
@@ -48,7 +48,7 @@ class YandexClient {
      * @param httpQuery map of query parameters
      * @return full url
      */
-    private String buildApiUrl(String apiMethod, Map<String, String> httpQuery) throws YandexClientException {
+    private String buildApiUrl(String apiMethod, Map<String, String> httpQuery) throws ClientException {
         String apiUrl = API_URL_STAT + apiMethod + '?';
         httpQuery.put("id", String.valueOf(YA_METRIKA_ID));
         httpQuery.put("oauth_token", TOKEN);
@@ -61,7 +61,7 @@ class YandexClient {
                 );
             } catch (UnsupportedEncodingException e) {
                 logger.error("Failure to encode params", e);
-                throw new YandexClientException("Failure to encode params", e);
+                throw new ClientException("Failure to encode params", e);
             }
         }
 
@@ -71,9 +71,9 @@ class YandexClient {
     /**
      * Getting client ids and search phrases from api
      *
-     * @throws YandexClientException
+     * @throws ClientException
      */
-    public Table getClientPhraseTable(Date from, Date to) throws YandexClientException {
+    public Table getClientPhraseTable(Date from, Date to) throws ClientException {
         Map<String, String> httpQuery = new HashMap<>();
 
         httpQuery.put("dimensions", "ym:s:searchPhrase,ym:s:paramsLevel2");
@@ -94,7 +94,10 @@ class YandexClient {
         );
 
         String apiUrl = buildApiUrl(API_METHOD_TABLE, httpQuery);
-        String response = getData(apiUrl);
+        String response = makeGetRequest(apiUrl);
+        if (response.isEmpty()) {
+            throw new ClientException("Empty content");
+        }
 
         logger.debug("Parsing a json");
         ObjectMapper objectMapper = new ObjectMapper();
@@ -104,40 +107,10 @@ class YandexClient {
         } catch (IOException e) {
             String msg = "Failure to parse json";
             logger.error(msg, e);
-            throw new YandexClientException(msg, e);
+            throw new ClientException(msg, e);
         }
 
         return table;
-    }
-
-    /**
-     * Sending a request to current api url
-     *
-     * @param apiUrl full url to the server
-     * @return string formatted response from server
-     * @throws YandexClientException
-     */
-    private String getData(String apiUrl) throws YandexClientException {
-        String data = "";
-        try {
-            logger.debug("Sending a request to " + apiUrl);
-            URL url = new URL(apiUrl);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream(), "UTF-8"));
-            String line;
-            while (null != (line = reader.readLine())) {
-                data += line;
-            }
-        } catch (IOException e) {
-            String msg = "Failure to get data from api";
-            logger.error(msg, e);
-            throw new YandexClientException(msg, e);
-        }
-
-        if (data.isEmpty()) {
-            throw new YandexClientException("Empty content");
-        }
-
-        return data;
     }
 
 }

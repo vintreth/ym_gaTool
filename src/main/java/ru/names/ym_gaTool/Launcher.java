@@ -36,7 +36,7 @@ public class Launcher {
             Table table = yandexClient.getClientPhraseTable(from, to);
             System.out.println(table);
 
-        } catch (YandexClientException e) {
+        } catch (ClientException e) {
             logger.error(e.getMessage(), e);
         }
     }
