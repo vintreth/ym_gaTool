@@ -1,6 +1,8 @@
 package ru.names.ym_gaTool;
 
 import org.apache.log4j.Logger;
+import org.codehaus.jackson.map.ObjectMapper;
+import ru.names.ym_gaTool.api.response.yandex.Table;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -14,7 +16,7 @@ import java.util.*;
 /**
  * @author kbogdanov 14.03.16
  */
-public class YandexClient {
+class YandexClient {
 
     private static final String AUTHORIZATION_URL = "https://oauth.yandex.ru/authorize";
     private static final String OAUTH_PARAM_RESPONSE_TYPE = "token";
@@ -24,6 +26,7 @@ public class YandexClient {
 
     private static final String API_URL_STAT = "https://api-metrika.yandex.ru/stat/v1/data/";
     private static final String API_METHOD_BYTIME = "bytime";
+    private static final String API_METHOD_TABLE = "";
 
     private static final int YA_METRIKA_ID = NOT_A_PASSWORD_ACTUALLY;
 
@@ -66,11 +69,11 @@ public class YandexClient {
     }
 
     /**
-     * Getting data by time from api
+     * Getting client ids and search phrases from api
      *
      * @throws YandexClientException
      */
-    public void getDataByTime(Date from, Date to) throws YandexClientException {
+    public Table getClientPhraseTable(Date from, Date to) throws YandexClientException {
         Map<String, String> httpQuery = new HashMap<>();
 
         httpQuery.put("dimensions", "ym:s:searchPhrase,ym:s:paramsLevel2");
@@ -83,7 +86,6 @@ public class YandexClient {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         httpQuery.put("date1", dateFormat.format(from));
         httpQuery.put("date2", dateFormat.format(to));
-        httpQuery.put("top_keys", "30");
 
         logger.debug(
                 "Preparing to get data by time from api. From: "
@@ -91,9 +93,20 @@ public class YandexClient {
                         + ", to: " + httpQuery.get("date2")
         );
 
-        String apiUrl = buildApiUrl(API_METHOD_BYTIME, httpQuery);
+        String apiUrl = buildApiUrl(API_METHOD_TABLE, httpQuery);
+        String response = getData(apiUrl);
 
-        logger.debug(getData(apiUrl));
+        ObjectMapper objectMapper = new ObjectMapper();
+        Table table;
+        try {
+            table = objectMapper.readValue(response, Table.class);
+        } catch (IOException e) {
+            String msg = "Failure to parse json";
+            logger.error(msg, e);
+            throw new YandexClientException(msg, e);
+        }
+
+        return table;
     }
 
     /**
@@ -117,6 +130,10 @@ public class YandexClient {
             String msg = "Failure to get data from api";
             logger.error(msg, e);
             throw new YandexClientException(msg, e);
+        }
+
+        if (data.isEmpty()) {
+            throw new YandexClientException("Empty content");
         }
 
         return data;

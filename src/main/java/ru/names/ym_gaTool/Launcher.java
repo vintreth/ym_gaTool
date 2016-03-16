@@ -1,6 +1,7 @@
 package ru.names.ym_gaTool;
 
 import org.apache.log4j.Logger;
+import ru.names.ym_gaTool.api.response.yandex.Table;
 
 import java.util.Date;
 
@@ -13,6 +14,7 @@ public class Launcher {
 
     /**
      * Main method
+     *
      * @param args input params
      */
     public static void main(String[] args) {
@@ -27,10 +29,11 @@ public class Launcher {
         logger.debug("Running the application");
         try {
             YandexClient yandexClient = new YandexClient();
-            Date from = new Date();
-            Date to = new Date(from.getTime() + 86400 * 1000);
+            Date to = new Date();
+            Date from = new Date(to.getTime() - 86400 * 1000);
             //todo write code
-            yandexClient.getDataByTime(from, to);
+            Table table = yandexClient.getClientPhraseTable(from, to);
+            System.out.println(table);
 
         } catch (YandexClientException e) {
             logger.error(e.getMessage(), e);
