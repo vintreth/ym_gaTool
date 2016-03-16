@@ -32,6 +32,7 @@ public class Launcher {
             Date to = new Date();
             Date from = new Date(to.getTime() - 86400 * 1000);
             //todo write code
+            logger.debug("Getting data from yandex api");
             Table table = yandexClient.getClientPhraseTable(from, to);
             System.out.println(table);
 
