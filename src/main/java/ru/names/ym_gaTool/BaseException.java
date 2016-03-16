@@ -3,7 +3,7 @@ package ru.names.ym_gaTool;
 /**
  * @author kbogdanov 15.03.16
  */
-public class BaseException extends Exception {
+class BaseException extends Exception {
 
     public BaseException(String message) {
         super(message);

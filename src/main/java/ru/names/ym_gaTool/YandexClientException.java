@@ -3,7 +3,7 @@ package ru.names.ym_gaTool;
 /**
  * @author kbogdanov 14.03.16
  */
-public class YandexClientException extends BaseException {
+class YandexClientException extends BaseException {
 
     public YandexClientException(String message) {
         super(message);
