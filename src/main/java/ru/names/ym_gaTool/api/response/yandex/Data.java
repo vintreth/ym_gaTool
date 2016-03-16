@@ -25,4 +25,20 @@ public class Data {
     public void setMetrics(float[] metrics) {
         this.metrics = metrics;
     }
+
+    public String getKeyWord() {
+        if (null != dimensions && 0 < dimensions.length) {
+            return dimensions[0].getName();
+        }
+
+        return null;
+    }
+
+    public String getClientId() {
+        if (null != dimensions && 1 < dimensions.length) {
+            return dimensions[1].getName();
+        }
+
+        return null;
+    }
 }
