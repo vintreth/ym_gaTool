@@ -53,19 +53,7 @@ class YandexClient extends AbstractClient {
         httpQuery.put("id", String.valueOf(YA_METRIKA_ID));
         httpQuery.put("oauth_token", TOKEN);
 
-        List<String> httpQueryParams = new ArrayList<>();
-        for (Map.Entry<String, String> entry : httpQuery.entrySet()) {
-            try {
-                httpQueryParams.add(
-                        URLEncoder.encode(entry.getKey(), "UTF-8") + "=" + URLEncoder.encode(entry.getValue(), "UTF-8")
-                );
-            } catch (UnsupportedEncodingException e) {
-                logger.error("Failure to encode params", e);
-                throw new ClientException("Failure to encode params", e);
-            }
-        }
-
-        return apiUrl + String.join("&", httpQueryParams);
+        return apiUrl + buildHttpQuery(httpQuery);
     }
 
     /**
@@ -86,6 +74,8 @@ class YandexClient extends AbstractClient {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         httpQuery.put("date1", dateFormat.format(from));
         httpQuery.put("date2", dateFormat.format(to));
+        //todo debug
+        httpQuery.put("limit", "3");
 
         logger.debug(
                 "Preparing to get data by time from api. From: "
