@@ -15,6 +15,9 @@ import java.util.Map;
  */
 class AbstractClient {
 
+    protected static final int HTTP_STATUS_OK = 200;
+    protected static final int HTTP_STATUS_BAD_REQUEST = 400;
+
     private static final String HTTP_METHOD_GET = "GET";
     private static final String HTTP_METHOD_POST = "POST";
 
@@ -26,10 +29,9 @@ class AbstractClient {
      * Sending a request to current api url
      *
      * @param link api url
-     * @return string represented response
      * @throws ClientException
      */
-    protected String makeGetRequest(String link) throws ClientException {
+    protected HttpURLConnection makeGetRequest(String link) throws ClientException {
         logger.debug("Making GET request to " + link);
         HttpURLConnection connection = null;
         try {
@@ -45,7 +47,7 @@ class AbstractClient {
             throw new ClientException(msg, e);
         }
 
-        return getResponse(connection);
+        return connection;
     }
 
     /**
@@ -56,7 +58,7 @@ class AbstractClient {
      * @return server response
      * @throws ClientException
      */
-    public String makePostRequest(String link, String httpQuery) throws ClientException {
+    public HttpURLConnection makePostRequest(String link, String httpQuery) throws ClientException {
         logger.debug("Making POST request to " + link);
         HttpURLConnection connection = null;
         try {
@@ -78,7 +80,7 @@ class AbstractClient {
             throw new ClientException(msg, e);
         }
 
-        return getResponse(connection);
+        return connection;
     }
 
     /**
@@ -88,12 +90,19 @@ class AbstractClient {
      * @return server response
      * @throws ClientException
      */
-    private String getResponse(HttpURLConnection connection) throws ClientException {
+    protected String getResponse(HttpURLConnection connection) throws ClientException {
         logger.debug("Retrieving response from the connection");
         StringBuilder response = new StringBuilder();
         BufferedReader reader = null;
         try {
-            reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            InputStream inputStream;
+            if (HTTP_STATUS_BAD_REQUEST <= connection.getResponseCode()) {
+                inputStream = connection.getErrorStream();
+            } else {
+                inputStream = connection.getInputStream();
+            }
+
+            reader = new BufferedReader(new InputStreamReader(inputStream));
             String line;
             while (null != (line = reader.readLine())) {
                 response.append(line);
