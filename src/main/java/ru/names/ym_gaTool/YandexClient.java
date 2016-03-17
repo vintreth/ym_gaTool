@@ -36,7 +36,9 @@ class YandexClient extends AbstractClient {
 
     private void authorize() throws ConnectionException, ClientException {
         logger.debug("Starting to authorize");
-        HttpsConnection connection = new HttpsConnection(AUTHORIZATION_URL);
+        HttpsConnection connection = new HttpsConnection(
+                AUTHORIZATION_URL + "?response_type=token&client_id=" + CLIENT_ID
+        );
         connection.addHeaders("Content-type", "application/x-www-form-urlencoded");
 
         byte[] secret = Base64.getEncoder().encode((CLIENT_ID + ":" + PASSWORD).getBytes());
@@ -89,8 +91,7 @@ class YandexClient extends AbstractClient {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         httpQuery.put("date1", dateFormat.format(from));
         httpQuery.put("date2", dateFormat.format(to));
-        //todo debug
-        httpQuery.put("limit", "3");
+        //todo debug httpQuery.put("limit", "3");
 
         logger.debug(
                 "Preparing to get data by time from api. From: "
