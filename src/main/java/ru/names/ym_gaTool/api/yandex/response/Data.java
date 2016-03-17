@@ -1,4 +1,4 @@
-package ru.names.ym_gaTool.api.response.yandex;
+package ru.names.ym_gaTool.api.yandex.response;
 
 /**
  * @author kbogdanov 16.03.16

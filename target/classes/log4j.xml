@@ -3,7 +3,6 @@
 
 <log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
     <appender name="FILE" class="org.apache.log4j.rolling.RollingFileAppender">
-        <!--<param name="File" value="./log/application_%d{yyyy-MM-dd}.log" />-->
         <rollingPolicy class="org.apache.log4j.rolling.TimeBasedRollingPolicy">
             <param name="FileNamePattern" value="./log/application_%d{yyyy-MM-dd}.log"/>
         </rollingPolicy>

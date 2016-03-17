@@ -2,13 +2,15 @@ package ru.names.ym_gaTool;
 
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
-import ru.names.ym_gaTool.api.response.yandex.Table;
+import ru.names.ym_gaTool.api.yandex.error.ErrorResponse;
+import ru.names.ym_gaTool.api.yandex.response.Table;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
+import java.net.HttpURLConnection;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author kbogdanov 14.03.16
@@ -61,7 +63,7 @@ class YandexClient extends AbstractClient {
      *
      * @throws ClientException
      */
-    public Table getClientPhraseTable(Date from, Date to) throws ClientException {
+    public Table getClientPhraseTable(Date from, Date to) throws ClientException, HttpException {
         Map<String, String> httpQuery = new HashMap<>();
 
         httpQuery.put("dimensions", "ym:s:searchPhrase,ym:s:paramsLevel2");
@@ -84,9 +86,16 @@ class YandexClient extends AbstractClient {
         );
 
         String apiUrl = buildApiUrl(API_METHOD_TABLE, httpQuery);
-        String response = makeGetRequest(apiUrl);
-        if (response.isEmpty()) {
-            throw new ClientException("Empty content");
+        HttpURLConnection connection = makeGetRequest(apiUrl);
+        String response = getResponse(connection);
+        try {
+            if (HTTP_STATUS_OK != connection.getResponseCode()) {
+                throw new HttpException(connection.getResponseCode(), response);
+            }
+        } catch (IOException e) {
+            String msg = "Failure to get response code";
+            logger.error(msg, e);
+            throw new ClientException(msg, e);
         }
 
         logger.debug("Parsing a json");
@@ -101,6 +110,24 @@ class YandexClient extends AbstractClient {
         }
 
         return table;
+    }
+
+    /**
+     * Retrieves ErrorResponse object
+     *
+     * @param json json-formatted string
+     */
+    public ErrorResponse getErrorResponse(String json) {
+        try {
+            logger.debug("Parsing error json");
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.readValue(json, ErrorResponse.class);
+        } catch (IOException e) {
+            String msg = "Failure to parse error json";
+            logger.error(msg, e);
+        }
+
+        return null;
     }
 
 }

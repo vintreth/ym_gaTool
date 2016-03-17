@@ -1,9 +1,12 @@
 package ru.names.ym_gaTool;
 
 import org.apache.log4j.Logger;
-import ru.names.ym_gaTool.api.response.yandex.Data;
-import ru.names.ym_gaTool.api.response.yandex.Table;
+import ru.names.ym_gaTool.api.yandex.error.E;
+import ru.names.ym_gaTool.api.yandex.error.ErrorResponse;
+import ru.names.ym_gaTool.api.yandex.response.Data;
+import ru.names.ym_gaTool.api.yandex.response.Table;
 
+import java.util.Arrays;
 import java.util.Date;
 
 /**
@@ -28,8 +31,8 @@ public class Launcher {
      */
     private void run() {
         logger.debug("Running the application");
+        YandexClient yandexClient = new YandexClient();
         try {
-            YandexClient yandexClient = new YandexClient();
             Date to = new Date();
             Date from = new Date(to.getTime() - 86400 * 1000);
             //todo write code
@@ -50,6 +53,23 @@ public class Launcher {
             }
         } catch (ClientException e) {
             logger.error(e.getMessage(), e);
+        } catch (HttpException e) {
+            logger.error("Caught HttpException " + e.getStatus(), e);
+            if (!e.getMessage().isEmpty()) {
+                ErrorResponse errorResponse = yandexClient.getErrorResponse(e.getMessage());
+                if (null != errorResponse) {
+                    String errors = "[";
+                    for (E error : errorResponse.getErrors()) {
+                        errors += error.toString() + ",";
+                    }
+                    errors += "]";
+                    logger.error(
+                            "Code: " + errorResponse.getCode()
+                                    + ";\nMessage: \"" + errorResponse.getMessage()
+                                    + "\";\n" + errors
+                    );
+                }
+            }
         }
     }
 

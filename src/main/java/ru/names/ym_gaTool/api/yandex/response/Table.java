@@ -1,4 +1,4 @@
-package ru.names.ym_gaTool.api.response.yandex;
+package ru.names.ym_gaTool.api.yandex.response;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
