@@ -32,6 +32,6 @@ class GoogleClient extends AbstractClient {
         httpQueryMap.put("cid", clientId);
         httpQueryMap.put("ea", keyWord);
 
-        //makePostRequest(GOOGLE_ANALYTICS_COLLECT_URL, buildHttpQuery(httpQueryMap));
+        //todo makePostRequest(GOOGLE_ANALYTICS_COLLECT_URL, buildHttpQuery(httpQueryMap));
     }
 }

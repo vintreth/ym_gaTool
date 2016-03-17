@@ -6,7 +6,6 @@ import ru.names.ym_gaTool.api.yandex.error.ErrorResponse;
 import ru.names.ym_gaTool.api.yandex.response.Data;
 import ru.names.ym_gaTool.api.yandex.response.Table;
 
-import java.util.Arrays;
 import java.util.Date;
 
 /**
@@ -33,10 +32,9 @@ public class Launcher {
         logger.debug("Running the application");
         YandexClient yandexClient = new YandexClient();
         try {
+            logger.debug("Getting data from yandex api");
             Date to = new Date();
             Date from = new Date(to.getTime() - 86400 * 1000);
-            //todo write code
-            logger.debug("Getting data from yandex api");
             Table table = yandexClient.getClientPhraseTable(from, to);
 
             logger.debug("Got result, rows count " + table.getData().length);
@@ -51,7 +49,7 @@ public class Launcher {
                     googleClient.sendEvent(clientId, keyWord);
                 }
             }
-        } catch (ClientException e) {
+        } catch (ClientException | ConnectionException e) {
             logger.error(e.getMessage(), e);
         } catch (HttpException e) {
             logger.error("Caught HttpException " + e.getStatus(), e);
@@ -65,8 +63,8 @@ public class Launcher {
                     errors += "]";
                     logger.error(
                             "Code: " + errorResponse.getCode()
-                                    + ";\nMessage: \"" + errorResponse.getMessage()
-                                    + "\";\n" + errors
+                                    + ";\n\tMessage: \"" + errorResponse.getMessage()
+                                    + "\";\n\t" + errors
                     );
                 }
             }

@@ -8,6 +8,7 @@ import ru.names.ym_gaTool.api.yandex.response.Table;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.text.SimpleDateFormat;
+import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,8 +19,8 @@ import java.util.Map;
 class YandexClient extends AbstractClient {
 
     private static final String AUTHORIZATION_URL = "https://oauth.yandex.ru/authorize";
-    private static final String OAUTH_PARAM_RESPONSE_TYPE = "token";
     private static final String CLIENT_ID = "NOT_A_PASSWORD_ACTUALLY";
+    private static final String PASSWORD = "NOT_A_PASSWORD_ACTUALLY";
 
     private static final String TOKEN = "253d7248653e4a0fa2d78a6070fa56e6";
 
@@ -31,16 +32,22 @@ class YandexClient extends AbstractClient {
 
     private static Logger logger = Logger.getLogger("YandexClient");
 
-    private void authorize() {
-    }
+    private boolean authorized = false;
 
-    /**
-     * Retrieves token from api
-     *
-     * @return url
-     */
-    public String getToken() {
-        return AUTHORIZATION_URL + "?response_type=" + OAUTH_PARAM_RESPONSE_TYPE + "&client_id=" + CLIENT_ID;
+    private void authorize() throws ConnectionException, ClientException {
+        logger.debug("Starting to authorize");
+        HttpsConnection connection = new HttpsConnection(AUTHORIZATION_URL);
+        connection.addHeaders("Content-type", "application/x-www-form-urlencoded");
+
+        byte[] secret = Base64.getEncoder().encode((CLIENT_ID + ":" + PASSWORD).getBytes());
+        String s = new String(secret);
+        connection.addHeaders("Authorization", "Basic " + new String(secret));
+
+        logger.debug("Sending authorization request");
+        connection.doPost("");
+        String r = getResponse(connection.getInputStream());
+
+        System.out.println(r);
     }
 
     /**
@@ -63,7 +70,13 @@ class YandexClient extends AbstractClient {
      *
      * @throws ClientException
      */
-    public Table getClientPhraseTable(Date from, Date to) throws ClientException, HttpException {
+    public Table getClientPhraseTable(Date from, Date to) throws ClientException, HttpException, ConnectionException {
+        logger.debug("Retrieving client phrases");
+        if (!authorized) {
+            logger.debug("Not authorized");
+            authorize();
+        }
+
         Map<String, String> httpQuery = new HashMap<>();
 
         httpQuery.put("dimensions", "ym:s:searchPhrase,ym:s:paramsLevel2");
@@ -121,6 +134,7 @@ class YandexClient extends AbstractClient {
         try {
             logger.debug("Parsing error json");
             ObjectMapper objectMapper = new ObjectMapper();
+
             return objectMapper.readValue(json, ErrorResponse.class);
         } catch (IOException e) {
             String msg = "Failure to parse error json";
