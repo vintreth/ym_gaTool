@@ -31,6 +31,7 @@ class AbstractClient {
      * @param link api url
      * @throws ClientException
      */
+    @Deprecated
     protected HttpURLConnection makeGetRequest(String link) throws ClientException {
         logger.debug("Making GET request to " + link);
         HttpURLConnection connection = null;
@@ -58,6 +59,7 @@ class AbstractClient {
      * @return server response
      * @throws ClientException
      */
+    @Deprecated
     public HttpURLConnection makePostRequest(String link, String httpQuery) throws ClientException {
         logger.debug("Making POST request to " + link);
         HttpURLConnection connection = null;
@@ -84,12 +86,46 @@ class AbstractClient {
     }
 
     /**
+     * Retrieves response from input stream
+     * @param inputStream current input stream
+     * @return server response
+     * @throws ClientException
+     */
+    protected String getResponse(InputStream inputStream) throws ClientException {
+        logger.debug("Retrieving response from the input stream");
+        StringBuilder response = new StringBuilder();
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(new InputStreamReader(inputStream));
+            String line;
+            while (null != (line = reader.readLine())) {
+                response.append(line);
+            }
+        } catch (IOException e) {
+            String msg = "Failure to read a response";
+            logger.error(msg, e);
+            throw new ClientException(msg, e);
+        } finally {
+            try {
+                if (null != reader) {
+                    reader.close();
+                }
+            } catch (IOException e) {
+                logger.error("Failure to close the reader", e);
+            }
+        }
+
+        return response.toString();
+    }
+
+    /**
      * Return response for current connection
      *
      * @param connection current connection
      * @return server response
      * @throws ClientException
      */
+    @Deprecated
     protected String getResponse(HttpURLConnection connection) throws ClientException {
         logger.debug("Retrieving response from the connection");
         StringBuilder response = new StringBuilder();
