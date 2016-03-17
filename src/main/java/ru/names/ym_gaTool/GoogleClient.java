@@ -19,16 +19,19 @@ class GoogleClient extends AbstractClient {
     private static Logger logger = Logger.getLogger("GoogleClient");
 
     public void sendEvent(String clientId, String keyWord) throws ClientException {
+        logger.debug("Preparing to send event to google analytics");
         Map<String, String> httpQueryMap = new HashMap<>();
+        // default params
         httpQueryMap.put("v", "1"); // Version.
         httpQueryMap.put("tid", GOOGLE_ANALYTICS_ID); // Tracking ID / Property ID.
         httpQueryMap.put("t", HIT_TYPE_EVENT); // Hit Type.
         httpQueryMap.put("ec", EVENT_NAME); // Event name.
         httpQueryMap.put("ni", "1"); // Special param.
-        httpQueryMap.put("cid", clientId); // todo Anonymous Client ID.
-        httpQueryMap.put("ea", keyWord); // todo Key word.
 
-        String response = makePostRequest(GOOGLE_ANALYTICS_COLLECT_URL, buildHttpQuery(httpQueryMap));
-        System.out.println(response);
+        logger.debug("Client id: " + clientId + "; Key word: \"" + keyWord + "\"");
+        httpQueryMap.put("cid", clientId);
+        httpQueryMap.put("ea", keyWord);
+
+        //makePostRequest(GOOGLE_ANALYTICS_COLLECT_URL, buildHttpQuery(httpQueryMap));
     }
 }
