@@ -89,7 +89,7 @@ class AbstractClient {
      * @throws ClientException
      */
     private String getResponse(HttpURLConnection connection) throws ClientException {
-        logger.debug("Retrieving response for the connection");
+        logger.debug("Retrieving response from the connection");
         StringBuilder response = new StringBuilder();
         BufferedReader reader = null;
         try {
@@ -111,6 +111,8 @@ class AbstractClient {
                 logger.error("Failure to close the reader", e);
             }
         }
+
+        logger.debug("Done");
 
         return response.toString();
     }
