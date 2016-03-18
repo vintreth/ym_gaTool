@@ -1,8 +1,6 @@
 package ru.names.ym_gaTool;
 
 import org.apache.log4j.Logger;
-import ru.names.ym_gaTool.api.yandex.response.Data;
-import ru.names.ym_gaTool.api.yandex.response.Table;
 
 import java.util.Date;
 import java.util.List;

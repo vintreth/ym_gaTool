@@ -7,6 +7,8 @@ import ru.names.ym_gaTool.api.yandex.error.ErrorResponse;
 import ru.names.ym_gaTool.api.yandex.response.Data;
 import ru.names.ym_gaTool.api.yandex.response.Table;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
@@ -21,13 +23,16 @@ class YandexClient extends AbstractClient {
     private static final String CLIENT_ID = "NOT_A_PASSWORD_ACTUALLY";
     private static final String PASSWORD = "NOT_A_PASSWORD_ACTUALLY";
 
-    private static final String TOKEN = "253d7248653e4a0fa2d78a6070fa56e6";
-
     private static final String API_URL_STAT = "https://api-metrika.yandex.ru/stat/v1/data/";
     private static final String API_METHOD_BYTIME = "bytime";
     private static final String API_METHOD_TABLE = "";
 
     private static final int YA_METRIKA_ID = NOT_A_PASSWORD_ACTUALLY;
+
+    /**
+     * This property must be accessed from token() method
+     */
+    private String token;
 
     private static Logger logger = Logger.getLogger("YandexClient");
 
@@ -41,7 +46,7 @@ class YandexClient extends AbstractClient {
     private String buildApiUrl(String apiMethod, Map<String, String> httpQuery) throws ClientException {
         String apiUrl = API_URL_STAT + apiMethod + '?';
         httpQuery.put("id", String.valueOf(YA_METRIKA_ID));
-        httpQuery.put("oauth_token", TOKEN);
+        httpQuery.put("oauth_token", token());
 
         return apiUrl + buildHttpQuery(httpQuery);
     }
@@ -179,4 +184,34 @@ class YandexClient extends AbstractClient {
         return null;
     }
 
+    /**
+     * Retrieves yandex api access token
+     *
+     * @return .access_token file content
+     * @throws ClientException
+     */
+    private String token() throws ClientException {
+        if (null == token) {
+            token = "";
+            try {
+                String projectDirPath = System.getProperty("user.dir");
+                String tokenFilePath = projectDirPath + "/.access_token";
+                BufferedReader reader = new BufferedReader(new FileReader(tokenFilePath));
+                String line;
+                while (null != (line = reader.readLine())) {
+                    token += line;
+                }
+                token = token.trim();
+            } catch (IOException e) {
+                logger.debug(e.getMessage(), e);
+                throw new ClientException(e.getMessage(), e);
+            }
+
+            if (token.isEmpty()) {
+                throw new ClientException("Failure to accept empty token");
+            }
+        }
+
+        return token;
+    }
 }
