@@ -42,7 +42,6 @@ public class Launcher {
                 for (ClientPhrase clientPhrase : clientPhrases) {
                     googleClient.sendEvent(clientPhrase);
                     Thread.sleep(1000);
-                    break; //todo
                 }
             } catch (InterruptedException e) {
                 logger.error(e.getMessage(), e);
