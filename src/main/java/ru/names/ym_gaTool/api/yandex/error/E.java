@@ -3,6 +3,8 @@ package ru.names.ym_gaTool.api.yandex.error;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
+ * Representation of yandex metrics api error response object
+ *
  * @author kbogdanov 17.03.16
  */
 public class E {
