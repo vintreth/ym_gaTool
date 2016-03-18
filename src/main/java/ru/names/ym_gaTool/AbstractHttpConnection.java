@@ -49,12 +49,12 @@ abstract class AbstractHttpConnection {
     protected abstract HttpURLConnection connection() throws HttpConnectionException;
 
     public void addHeaders(String name, String value) {
-        logger.debug("Adding headers {name: " + name + ", value: " + value + "}");
         connection.setRequestProperty(name, value);
     }
 
     /**
      * Prepares GET request
+     *
      * @throws HttpConnectionException
      */
     public void doGet() throws HttpConnectionException {
@@ -70,6 +70,7 @@ abstract class AbstractHttpConnection {
 
     /**
      * Prepares POST request
+     *
      * @param body request body
      * @throws HttpConnectionException
      */
@@ -92,6 +93,7 @@ abstract class AbstractHttpConnection {
 
     /**
      * Sets additional params before request
+     *
      * @throws HttpConnectionException
      */
     private void processRequest() throws HttpConnectionException {
@@ -134,9 +136,19 @@ abstract class AbstractHttpConnection {
 
     /**
      * Is request error
+     *
      * @return boolean
      */
     public boolean isError() {
         return 400 <= responseCode;
+    }
+
+    /**
+     * response code will be set after request
+     *
+     * @return
+     */
+    public int getResponseCode() {
+        return responseCode;
     }
 }

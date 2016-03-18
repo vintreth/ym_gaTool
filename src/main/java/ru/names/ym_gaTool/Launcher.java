@@ -40,10 +40,18 @@ public class Launcher {
             logger.debug("Got result, rows count " + clientPhrases.size());
             logger.debug("Processing data");
             GoogleClient googleClient = new GoogleClient();
-            for (ClientPhrase clientPhrase : clientPhrases) {
-                //todo googleClient.sendEvent(clientPhrase);
+            try {
+                for (ClientPhrase clientPhrase : clientPhrases) {
+                    googleClient.sendEvent(clientPhrase);
+                    Thread.sleep(1000);
+                }
+            } catch (InterruptedException e) {
+                logger.error(e.getMessage(), e);
+                throw new BaseException(e.getMessage(), e);
             }
-        } catch (ClientException | HttpConnectionException e) {
+        } catch (HttpException e) {
+            logger.error("Caught HttpException: " + e.getStatus() + " " + e.getMessage(), e);
+        } catch (BaseException e) {
             logger.error(e.getMessage(), e);
         }
 
