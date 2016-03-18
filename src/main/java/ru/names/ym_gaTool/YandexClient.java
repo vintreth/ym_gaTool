@@ -4,16 +4,13 @@ import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
 import ru.names.ym_gaTool.api.yandex.error.E;
 import ru.names.ym_gaTool.api.yandex.error.ErrorResponse;
+import ru.names.ym_gaTool.api.yandex.response.Data;
 import ru.names.ym_gaTool.api.yandex.response.Table;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.text.SimpleDateFormat;
-import java.util.Base64;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author kbogdanov 14.03.16
@@ -54,7 +51,7 @@ class YandexClient extends AbstractClient {
      *
      * @throws ClientException
      */
-    public Table getClientPhraseTable(Date from, Date to) throws ClientException, HttpConnectionException {
+    public List<ClientPhrase> getClientPhrases(Date from, Date to) throws ClientException, HttpConnectionException {
         logger.debug("Retrieving client phrases");
 
         Map<String, String> httpQuery = new HashMap<>();
@@ -69,7 +66,6 @@ class YandexClient extends AbstractClient {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         httpQuery.put("date1", dateFormat.format(from));
         httpQuery.put("date2", dateFormat.format(to));
-        //todo debug httpQuery.put("limit", "3");
 
         logger.debug(
                 "Preparing to get data by time from api. From: "
@@ -77,37 +73,55 @@ class YandexClient extends AbstractClient {
                         + ", to: " + httpQuery.get("date2")
         );
 
-        AbstractHttpConnection connection = new HttpsConnection(buildApiUrl(API_METHOD_TABLE, httpQuery));
-        connection.doGet();
-        InputStream inputStream = connection.getInputStream();
-        if (null != inputStream) {
-            String response = getResponse(connection.getInputStream());
+        List<Table> tables = new ArrayList<>();
+        int offset = 1;
+        int limit = 100;
+        int count = 0; // our count of retrieved results
+        int totalRows = 0; // total count from api
+        do {
+            httpQuery.put("offset", String.valueOf(offset));
+            httpQuery.put("limit", String.valueOf(limit));
 
-            if (connection.isError()) {
-                logger.fatal("Got error response from yandex api. Application will be stopped.");
-                if (!response.isEmpty()) {
-                    ErrorResponse errorResponse = getErrorResponse(response);
-                    if (null != errorResponse) {
-                        String errors = "[";
-                        for (E error : errorResponse.getErrors()) {
-                            errors += error.toString() + ",";
+            AbstractHttpConnection connection = new HttpsConnection(buildApiUrl(API_METHOD_TABLE, httpQuery));
+            connection.doGet();
+            InputStream inputStream = connection.getInputStream();
+            if (null != inputStream) {
+                String response = getResponse(inputStream);
+
+                if (connection.isError()) {
+                    logger.fatal("Got error response from yandex api. Application will be stopped.");
+                    if (!response.isEmpty()) {
+                        ErrorResponse errorResponse = getErrorResponse(response);
+                        if (null != errorResponse) {
+                            String errors = "[";
+                            for (E error : errorResponse.getErrors()) {
+                                errors += error.toString() + ",";
+                            }
+                            errors += "]";
+                            logger.error(
+                                    "Code: " + errorResponse.getCode()
+                                            + ";\n\tMessage: \"" + errorResponse.getMessage()
+                                            + "\";\n\t" + errors
+                            );
                         }
-                        errors += "]";
-                        logger.error(
-                                "Code: " + errorResponse.getCode()
-                                        + ";\n\tMessage: \"" + errorResponse.getMessage()
-                                        + "\";\n\t" + errors
-                        );
                     }
+                    // exiting with error
+                    System.exit(1);
                 }
-                // exiting with error
-                System.exit(1);
+
+                Table table = getTableResponse(response);
+                tables.add(table);
+
+                // getting totalRows from api at first iteration
+                if (0 == count) {
+                    totalRows = table.getTotalRows();
+                }
+                count += table.getData().length;
+                offset += limit;
             }
+        } while (count < totalRows);
 
-            return getTableResponse(response);
-        }
-
-        return null;
+        return getClientPhrasesByTables(tables);
     }
 
     private Table getTableResponse(String json) throws ClientException {
@@ -123,6 +137,27 @@ class YandexClient extends AbstractClient {
         }
 
         return table;
+    }
+
+    /**
+     * Converts list of tables to list of client phrases
+     *
+     * @param tables
+     * @return
+     */
+    private List<ClientPhrase> getClientPhrasesByTables(List<Table> tables) {
+        List<ClientPhrase> clientPhrases = new ArrayList<>();
+        for (Table table : tables) {
+            for (Data data : table.getData()) {
+                String clientId = data.getClientId();
+                String keyWord = data.getKeyWord();
+                if (null != clientId && null != keyWord) {
+                    clientPhrases.add(new ClientPhrase(clientId, keyWord));
+                }
+            }
+        }
+
+        return clientPhrases;
     }
 
     /**

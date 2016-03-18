@@ -1,7 +1,7 @@
 package ru.names.ym_gaTool.api.yandex.error;
 
 /**
- * Representation of yandex metrika api error response object
+ * Representation of yandex metrics api error response object
  *
  * @author kbogdanov 17.03.16
  */

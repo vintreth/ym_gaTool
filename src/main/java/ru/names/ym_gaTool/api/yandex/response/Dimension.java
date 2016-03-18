@@ -1,6 +1,8 @@
 package ru.names.ym_gaTool.api.yandex.response;
 
 /**
+ * Representation of yandex api table method response
+ *
  * @author kbogdanov 16.03.16
  */
 public class Dimension {
