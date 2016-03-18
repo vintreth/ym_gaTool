@@ -11,7 +11,7 @@ import java.util.Map;
  */
 class GoogleClient extends AbstractClient {
 
-    private static final String GOOGLE_ANALYTICS_COLLECT_URL = "http://www.google-analytics.com/collect";
+    private static final String GOOGLE_ANALYTICS_COLLECT_URL = "https://www.google-analytics.com/collect";
     private static final String GOOGLE_ANALYTICS_ID = "UA-26865693-1";
 
     private static final String HIT_TYPE_EVENT = "event";
