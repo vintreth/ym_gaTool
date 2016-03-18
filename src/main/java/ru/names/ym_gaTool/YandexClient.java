@@ -2,10 +2,12 @@ package ru.names.ym_gaTool;
 
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
+import ru.names.ym_gaTool.api.yandex.error.E;
 import ru.names.ym_gaTool.api.yandex.error.ErrorResponse;
 import ru.names.ym_gaTool.api.yandex.response.Table;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.text.SimpleDateFormat;
 import java.util.Base64;
@@ -32,26 +34,6 @@ class YandexClient extends AbstractClient {
 
     private static Logger logger = Logger.getLogger("YandexClient");
 
-    private boolean authorized = false;
-
-    private void authorize() throws ConnectionException, ClientException {
-        logger.debug("Starting to authorize");
-        HttpsConnection connection = new HttpsConnection(
-                AUTHORIZATION_URL + "?response_type=token&client_id=" + CLIENT_ID
-        );
-        connection.addHeaders("Content-type", "application/x-www-form-urlencoded");
-
-        byte[] secret = Base64.getEncoder().encode((CLIENT_ID + ":" + PASSWORD).getBytes());
-        String s = new String(secret);
-        connection.addHeaders("Authorization", "Basic " + new String(secret));
-
-        logger.debug("Sending authorization request");
-        connection.doPost("");
-        String r = getResponse(connection.getInputStream());
-
-        System.out.println(r);
-    }
-
     /**
      * Builds full url
      *
@@ -72,12 +54,8 @@ class YandexClient extends AbstractClient {
      *
      * @throws ClientException
      */
-    public Table getClientPhraseTable(Date from, Date to) throws ClientException, HttpException, ConnectionException {
+    public Table getClientPhraseTable(Date from, Date to) throws ClientException, HttpConnectionException {
         logger.debug("Retrieving client phrases");
-        if (!authorized) {
-            logger.debug("Not authorized");
-            authorize();
-        }
 
         Map<String, String> httpQuery = new HashMap<>();
 
@@ -99,24 +77,45 @@ class YandexClient extends AbstractClient {
                         + ", to: " + httpQuery.get("date2")
         );
 
-        String apiUrl = buildApiUrl(API_METHOD_TABLE, httpQuery);
-        HttpURLConnection connection = makeGetRequest(apiUrl);
-        String response = getResponse(connection);
-        try {
-            if (HTTP_STATUS_OK != connection.getResponseCode()) {
-                throw new HttpException(connection.getResponseCode(), response);
+        AbstractHttpConnection connection = new HttpsConnection(buildApiUrl(API_METHOD_TABLE, httpQuery));
+        connection.doGet();
+        InputStream inputStream = connection.getInputStream();
+        if (null != inputStream) {
+            String response = getResponse(connection.getInputStream());
+
+            if (connection.isError()) {
+                logger.fatal("Got error response from yandex api. Application will be stopped.");
+                if (!response.isEmpty()) {
+                    ErrorResponse errorResponse = getErrorResponse(response);
+                    if (null != errorResponse) {
+                        String errors = "[";
+                        for (E error : errorResponse.getErrors()) {
+                            errors += error.toString() + ",";
+                        }
+                        errors += "]";
+                        logger.error(
+                                "Code: " + errorResponse.getCode()
+                                        + ";\n\tMessage: \"" + errorResponse.getMessage()
+                                        + "\";\n\t" + errors
+                        );
+                    }
+                }
+                // exiting with error
+                System.exit(1);
             }
-        } catch (IOException e) {
-            String msg = "Failure to get response code";
-            logger.error(msg, e);
-            throw new ClientException(msg, e);
+
+            return getTableResponse(response);
         }
 
+        return null;
+    }
+
+    private Table getTableResponse(String json) throws ClientException {
         logger.debug("Parsing a json");
         ObjectMapper objectMapper = new ObjectMapper();
         Table table;
         try {
-            table = objectMapper.readValue(response, Table.class);
+            table = objectMapper.readValue(json, Table.class);
         } catch (IOException e) {
             String msg = "Failure to parse json";
             logger.error(msg, e);
@@ -131,7 +130,7 @@ class YandexClient extends AbstractClient {
      *
      * @param json json-formatted string
      */
-    public ErrorResponse getErrorResponse(String json) {
+    private ErrorResponse getErrorResponse(String json) {
         try {
             logger.debug("Parsing error json");
             ObjectMapper objectMapper = new ObjectMapper();

@@ -15,75 +15,7 @@ import java.util.Map;
  */
 class AbstractClient {
 
-    protected static final int HTTP_STATUS_OK = 200;
-    protected static final int HTTP_STATUS_BAD_REQUEST = 400;
-
-    private static final String HTTP_METHOD_GET = "GET";
-    private static final String HTTP_METHOD_POST = "POST";
-
-    private static final String USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/48.0.2564.116 Chrome/48.0.2564.116 Safari/537.36";
-
     private static Logger logger = Logger.getLogger("AbstractClient");
-
-    /**
-     * Sending a request to current api url
-     *
-     * @param link api url
-     * @throws ClientException
-     */
-    @Deprecated
-    protected HttpURLConnection makeGetRequest(String link) throws ClientException {
-        logger.debug("Making GET request to " + link);
-        HttpURLConnection connection = null;
-        try {
-            URL url = new URL(link);
-            connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod(HTTP_METHOD_GET);
-            connection.setRequestProperty("User-Agent", USER_AGENT);
-
-            logger.debug("Response code " + connection.getResponseCode());
-        } catch (IOException e) {
-            String msg = "Failure to make a request";
-            logger.error(msg, e);
-            throw new ClientException(msg, e);
-        }
-
-        return connection;
-    }
-
-    /**
-     * Makes POST-request to current url
-     *
-     * @param link      url
-     * @param httpQuery string represented query params
-     * @return server response
-     * @throws ClientException
-     */
-    @Deprecated
-    public HttpURLConnection makePostRequest(String link, String httpQuery) throws ClientException {
-        logger.debug("Making POST request to " + link);
-        HttpURLConnection connection = null;
-        try {
-            URL url = new URL(link);
-            connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod(HTTP_METHOD_POST);
-            connection.setRequestProperty("User-Agent", USER_AGENT);
-            connection.setDoOutput(true);
-
-            DataOutputStream dataOutputStream = new DataOutputStream(connection.getOutputStream());
-            dataOutputStream.writeBytes(httpQuery);
-            dataOutputStream.flush();
-            dataOutputStream.close();
-
-            logger.debug("Response code " + connection.getResponseCode());
-        } catch (IOException e) {
-            String msg = "Failure to make a request";
-            logger.error(msg, e);
-            throw new ClientException(msg, e);
-        }
-
-        return connection;
-    }
 
     /**
      * Retrieves response from input stream
@@ -114,50 +46,6 @@ class AbstractClient {
                 logger.error("Failure to close the reader", e);
             }
         }
-
-        return response.toString();
-    }
-
-    /**
-     * Return response for current connection
-     *
-     * @param connection current connection
-     * @return server response
-     * @throws ClientException
-     */
-    @Deprecated
-    protected String getResponse(HttpURLConnection connection) throws ClientException {
-        logger.debug("Retrieving response from the connection");
-        StringBuilder response = new StringBuilder();
-        BufferedReader reader = null;
-        try {
-            InputStream inputStream;
-            if (HTTP_STATUS_BAD_REQUEST <= connection.getResponseCode()) {
-                inputStream = connection.getErrorStream();
-            } else {
-                inputStream = connection.getInputStream();
-            }
-
-            reader = new BufferedReader(new InputStreamReader(inputStream));
-            String line;
-            while (null != (line = reader.readLine())) {
-                response.append(line);
-            }
-        } catch (IOException e) {
-            String msg = "Failure to read a response";
-            logger.error(msg, e);
-            throw new ClientException(msg, e);
-        } finally {
-            try {
-                if (null != reader) {
-                    reader.close();
-                }
-            } catch (IOException e) {
-                logger.error("Failure to close the reader", e);
-            }
-        }
-
-        logger.debug("Done");
 
         return response.toString();
     }
