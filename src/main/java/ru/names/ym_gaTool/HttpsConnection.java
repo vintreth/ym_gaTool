@@ -15,23 +15,23 @@ class HttpsConnection extends AbstractHttpConnection {
 
     private static Logger logger = Logger.getLogger("HttpsConnection");
 
-    public HttpsConnection(String url) throws ConnectionException {
+    public HttpsConnection(String url) throws HttpConnectionException {
         super(url);
     }
 
     /**
      * @return https url connection object
-     * @throws ConnectionException
+     * @throws HttpConnectionException
      */
     @Override
-    protected HttpURLConnection connection() throws ConnectionException {
+    protected HttpURLConnection connection() throws HttpConnectionException {
         HttpsURLConnection connection = null;
         try {
             connection = (HttpsURLConnection) url.openConnection();
         } catch (IOException e) {
             String msg = "Failure to open a connection";
             logger.error(msg, e);
-            throw new ConnectionException(msg, e);
+            throw new HttpConnectionException(msg, e);
         }
 
         return connection;

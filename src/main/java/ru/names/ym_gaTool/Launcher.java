@@ -1,8 +1,6 @@
 package ru.names.ym_gaTool;
 
 import org.apache.log4j.Logger;
-import ru.names.ym_gaTool.api.yandex.error.E;
-import ru.names.ym_gaTool.api.yandex.error.ErrorResponse;
 import ru.names.ym_gaTool.api.yandex.response.Data;
 import ru.names.ym_gaTool.api.yandex.response.Table;
 
@@ -30,9 +28,9 @@ public class Launcher {
      */
     private void run() {
         logger.debug("Running the application");
-        YandexClient yandexClient = new YandexClient();
         try {
             logger.debug("Getting data from yandex api");
+            YandexClient yandexClient = new YandexClient();
             Date to = new Date();
             Date from = new Date(to.getTime() - 86400 * 1000);
             Table table = yandexClient.getClientPhraseTable(from, to);
@@ -46,28 +44,11 @@ public class Launcher {
                 String keyWord = data.getKeyWord();
 
                 if (null != clientId && null != keyWord) {
-                    googleClient.sendEvent(clientId, keyWord);
+                    //todo googleClient.sendEvent(clientId, keyWord);
                 }
             }
-        } catch (ClientException | ConnectionException e) {
+        } catch (ClientException | HttpConnectionException e) {
             logger.error(e.getMessage(), e);
-        } catch (HttpException e) {
-            logger.error("Caught HttpException " + e.getStatus(), e);
-            if (!e.getMessage().isEmpty()) {
-                ErrorResponse errorResponse = yandexClient.getErrorResponse(e.getMessage());
-                if (null != errorResponse) {
-                    String errors = "[";
-                    for (E error : errorResponse.getErrors()) {
-                        errors += error.toString() + ",";
-                    }
-                    errors += "]";
-                    logger.error(
-                            "Code: " + errorResponse.getCode()
-                                    + ";\n\tMessage: \"" + errorResponse.getMessage()
-                                    + "\";\n\t" + errors
-                    );
-                }
-            }
         }
     }
 

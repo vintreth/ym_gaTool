@@ -10,7 +10,7 @@ import java.net.ProtocolException;
 import java.net.URL;
 
 /**
- * //todo refactor
+ * Abstract Http Connection
  *
  * @author kbogdanov 17.03.16
  */
@@ -24,40 +24,56 @@ abstract class AbstractHttpConnection {
     protected URL url;
     protected HttpURLConnection connection;
 
+    /**
+     * response code will be set after request
+     */
     protected int responseCode = 0;
 
     private static Logger logger = Logger.getLogger("AbstractHttpConnection");
 
-    public AbstractHttpConnection(String url) throws ConnectionException {
+    public AbstractHttpConnection(String url) throws HttpConnectionException {
         try {
             logger.debug("Creating abstract connection. Url: " + url);
             this.url = new URL(url);
             connection = connection();
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
-            throw new ConnectionException(e.getMessage(), e);
+            throw new HttpConnectionException(e.getMessage(), e);
         }
     }
 
-    protected abstract HttpURLConnection connection() throws ConnectionException;
+    /**
+     * @return Actual connection implementation
+     * @throws HttpConnectionException
+     */
+    protected abstract HttpURLConnection connection() throws HttpConnectionException;
 
     public void addHeaders(String name, String value) {
         logger.debug("Adding headers {name: " + name + ", value: " + value + "}");
         connection.setRequestProperty(name, value);
     }
 
-    public void doGet() throws ConnectionException {
+    /**
+     * Prepares GET request
+     * @throws HttpConnectionException
+     */
+    public void doGet() throws HttpConnectionException {
         try {
             connection.setRequestMethod(HTTP_METHOD_GET);
             connection.setRequestProperty("User-Agent", USER_AGENT);
         } catch (ProtocolException e) {
             logger.error(e.getMessage(), e);
-            throw new ConnectionException(e.getMessage(), e);
+            throw new HttpConnectionException(e.getMessage(), e);
         }
         processRequest();
     }
 
-    public void doPost(String body) throws ConnectionException {
+    /**
+     * Prepares POST request
+     * @param body request body
+     * @throws HttpConnectionException
+     */
+    public void doPost(String body) throws HttpConnectionException {
         try {
             connection.setRequestMethod(HTTP_METHOD_POST);
             connection.setRequestProperty("User-Agent", USER_AGENT);
@@ -69,22 +85,30 @@ abstract class AbstractHttpConnection {
             dataOutputStream.close();
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
-            throw new ConnectionException(e.getMessage(), e);
+            throw new HttpConnectionException(e.getMessage(), e);
         }
         processRequest();
     }
 
-    private void processRequest() throws ConnectionException {
+    /**
+     * Sets additional params before request
+     * @throws HttpConnectionException
+     */
+    private void processRequest() throws HttpConnectionException {
         try {
             logger.debug("Processing the request");
             responseCode = connection.getResponseCode();
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
-            throw new ConnectionException(e.getMessage(), e);
+            throw new HttpConnectionException(e.getMessage(), e);
         }
     }
 
-    public InputStream getInputStream() throws ConnectionException {
+    /**
+     * @return input stream from the connection
+     * @throws HttpConnectionException
+     */
+    public InputStream getInputStream() throws HttpConnectionException {
         logger.debug("Getting input stream");
         InputStream inputStream = null;
         if (isSuccess()) {
@@ -92,7 +116,7 @@ abstract class AbstractHttpConnection {
                 inputStream = connection.getInputStream();
             } catch (IOException e) {
                 logger.error(e.getMessage(), e);
-                throw new ConnectionException(e.getMessage(), e);
+                throw new HttpConnectionException(e.getMessage(), e);
             }
         } else if (isError()) {
             inputStream = connection.getErrorStream();
@@ -101,10 +125,17 @@ abstract class AbstractHttpConnection {
         return inputStream;
     }
 
+    /**
+     * @return is request success
+     */
     public boolean isSuccess() {
         return 200 <= responseCode && responseCode <= 299;
     }
 
+    /**
+     * Is request error
+     * @return boolean
+     */
     public boolean isError() {
         return 400 <= responseCode;
     }
