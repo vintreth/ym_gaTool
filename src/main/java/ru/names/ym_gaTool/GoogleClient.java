@@ -2,6 +2,7 @@ package ru.names.ym_gaTool;
 
 import org.apache.log4j.Logger;
 
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,7 +19,7 @@ class GoogleClient extends AbstractClient {
 
     private static Logger logger = Logger.getLogger("GoogleClient");
 
-    public void sendEvent(ClientPhrase clientPhrase) throws ClientException {
+    public void sendEvent(ClientPhrase clientPhrase) throws ClientException, HttpConnectionException, HttpException {
         logger.debug("Preparing to send event to google analytics");
         Map<String, String> httpQueryMap = new HashMap<>();
         // default params
@@ -32,6 +33,18 @@ class GoogleClient extends AbstractClient {
         httpQueryMap.put("cid", clientPhrase.getClientId());
         httpQueryMap.put("ea", clientPhrase.getKeyWord());
 
-        //todo makePostRequest(GOOGLE_ANALYTICS_COLLECT_URL, buildHttpQuery(httpQueryMap));
+        AbstractHttpConnection connection = new HttpsConnection(GOOGLE_ANALYTICS_COLLECT_URL);
+        connection.doPost(buildHttpQuery(httpQueryMap));
+        if (connection.isError()) {
+            throw new HttpException(connection.getResponseCode(), "Google api returned error");
+        }
+
+        InputStream inputStream = connection.getInputStream();
+        if (null != inputStream) {
+            String response = getResponse(inputStream);
+            logger.debug("Response: " + response);
+        }
+
+        logger.debug("Sent");
     }
 }
