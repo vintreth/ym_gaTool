@@ -23,11 +23,11 @@ class YandexClient extends AbstractClient {
     private static final String CLIENT_ID = "NOT_A_PASSWORD_ACTUALLY";
     private static final String PASSWORD = "NOT_A_PASSWORD_ACTUALLY";
 
-    private static final String API_URL_STAT = "https://api-metrika.yandex.ru/stat/v1/data/";
-    private static final String API_METHOD_BYTIME = "bytime";
-    private static final String API_METHOD_TABLE = "";
+    public static final String API_URL_STAT = "https://api-metrika.yandex.ru/stat/v1/data/";
+    public static final String API_METHOD_BYTIME = "bytime";
+    public static final String API_METHOD_TABLE = "";
 
-    private static final int YA_METRIKA_ID = NOT_A_PASSWORD_ACTUALLY;
+    public static final int YA_METRIKA_ID = NOT_A_PASSWORD_ACTUALLY;
 
     /**
      * This property must be accessed from token() method
@@ -190,7 +190,7 @@ class YandexClient extends AbstractClient {
      * @return .access_token file content
      * @throws ClientException
      */
-    private String token() throws ClientException {
+    protected String token() throws ClientException {
         if (null == token) {
             token = "";
             try {
