@@ -12,7 +12,7 @@ import java.util.Map;
  */
 public class HttpsConnectionTest extends YandexClient {
 
-    @Test(timeout = 5000)
+    @Test(timeout = 10000)
     public void testDoGet() throws Exception {
         Map<String, String> httpQueryMap = new HashMap<>();
         httpQueryMap.put("id", String.valueOf(YandexClient.YA_METRIKA_ID));
@@ -36,7 +36,7 @@ public class HttpsConnectionTest extends YandexClient {
         yandexConnection.doGet();
     }
 
-    @Test(timeout = 5000)
+    @Test(timeout = 10000)
     public void testDoPost() throws Exception {
         Map<String, String> httpQueryMap = new HashMap<>();
         httpQueryMap.put("v", "1"); // Version.
