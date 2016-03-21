@@ -11,11 +11,11 @@ import java.util.Map;
  */
 class GoogleClient extends AbstractClient {
 
-    private static final String GOOGLE_ANALYTICS_COLLECT_URL = "https://www.google-analytics.com/collect";
-    private static final String GOOGLE_ANALYTICS_ID = "UA-26865693-1";
+    public static final String GOOGLE_ANALYTICS_COLLECT_URL = "https://www.google-analytics.com/collect";
+    public static final String GOOGLE_ANALYTICS_ID = "UA-26865693-1";
 
-    private static final String HIT_TYPE_EVENT = "event";
-    private static final String EVENT_NAME = "Keyword";
+    public static final String HIT_TYPE_EVENT = "event";
+    public static final String EVENT_NAME = "Keyword";
 
     private static Logger logger = Logger.getLogger("GoogleClient");
 
