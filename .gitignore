@@ -1,3 +1,3 @@
 .idea
 target/*
-!target/ym_gaTool*
+!target/ym_gaTool-*
