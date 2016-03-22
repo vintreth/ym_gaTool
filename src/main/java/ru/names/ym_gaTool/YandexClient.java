@@ -73,7 +73,7 @@ class YandexClient extends AbstractClient {
         httpQuery.put("date2", dateFormat.format(to));
 
         logger.debug(
-                "Preparing to get data by time from api. From: "
+                "Preparing to get data from api. From: "
                         + httpQuery.get("date1")
                         + ", to: " + httpQuery.get("date2")
         );
@@ -120,6 +120,7 @@ class YandexClient extends AbstractClient {
                 // getting totalRows from api at first iteration
                 if (0 == count) {
                     totalRows = table.getTotalRows();
+                    logger.debug("Total rows " + totalRows);
                 }
                 count += table.getData().length;
                 offset += limit;
