@@ -24,10 +24,10 @@ class YandexClient extends AbstractClient {
     private static final String PASSWORD = "NOT_A_PASSWORD_ACTUALLY";
 
     public static final String API_URL_STAT = "https://api-metrika.yandex.ru/stat/v1/data/";
-    public static final String API_METHOD_BYTIME = "bytime";
-    public static final String API_METHOD_TABLE = "";
+    private static final String API_METHOD_BYTIME = "bytime";
+    private static final String API_METHOD_TABLE = "";
 
-    public static final int YA_METRIKA_ID = NOT_A_PASSWORD_ACTUALLY;
+    private static final int YA_METRIKA_ID = NOT_A_PASSWORD_ACTUALLY;
 
     /**
      * This property must be accessed from token() method
@@ -43,12 +43,13 @@ class YandexClient extends AbstractClient {
      * @param httpQuery map of query parameters
      * @return full url
      */
-    private String buildApiUrl(String apiMethod, Map<String, String> httpQuery) throws ClientException {
+    private String buildApiUrl(String apiMethod, Map<String, String> httpQuery)
+            throws ClientException, HttpRequestException {
         String apiUrl = API_URL_STAT + apiMethod + '?';
         httpQuery.put("id", String.valueOf(YA_METRIKA_ID));
         httpQuery.put("oauth_token", token());
 
-        return apiUrl + buildHttpQuery(httpQuery);
+        return apiUrl + AbstractHttpRequest.buildHttpQuery(httpQuery);
     }
 
     /**
@@ -56,26 +57,14 @@ class YandexClient extends AbstractClient {
      *
      * @throws ClientException
      */
-    public List<ClientPhrase> getClientPhrases(Date from, Date to) throws ClientException, HttpConnectionException {
+    public List<ClientPhrase> getClientPhrases(Date from, Date to) throws ClientException, HttpRequestException {
         logger.debug("Retrieving client phrases");
 
-        Map<String, String> httpQuery = new HashMap<>();
-
-        httpQuery.put("dimensions", "ym:s:searchPhrase,ym:s:paramsLevel2");
-        httpQuery.put("metrics", "ym:s:visits");
-        httpQuery.put(
-                "filters",
-                "ym:s:<attribution>SourceEngineName=='Яндекс' AND ym:s:paramsLevel1=='gaClientId'"
-        );
-
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        httpQuery.put("date1", dateFormat.format(from));
-        httpQuery.put("date2", dateFormat.format(to));
-
+        Map<String, String> httpQueryMap = getHttpQueryMap(from, to);
         logger.debug(
                 "Preparing to get data from api. From: "
-                        + httpQuery.get("date1")
-                        + ", to: " + httpQuery.get("date2")
+                        + httpQueryMap.get("date1")
+                        + ", to: " + httpQueryMap.get("date2")
         );
 
         List<Table> tables = new ArrayList<>();
@@ -84,34 +73,17 @@ class YandexClient extends AbstractClient {
         int count = 0; // our count of retrieved results
         int totalRows = 0; // total count from api
         do {
-            httpQuery.put("offset", String.valueOf(offset));
-            httpQuery.put("limit", String.valueOf(limit));
+            httpQueryMap.put("offset", String.valueOf(offset));
+            httpQueryMap.put("limit", String.valueOf(limit));
 
-            AbstractHttpConnection connection = new HttpsConnection(buildApiUrl(API_METHOD_TABLE, httpQuery));
-            connection.doGet();
-            InputStream inputStream = connection.getInputStream();
+            AbstractHttpRequest request = new HttpsRequest(buildApiUrl(API_METHOD_TABLE, httpQueryMap));
+            request.doGet();
+            InputStream inputStream = request.getInputStream();
             if (null != inputStream) {
                 String response = getResponse(inputStream);
 
-                if (connection.isError()) {
-                    logger.fatal("Got error response from yandex api. Application will be stopped.");
-                    if (!response.isEmpty()) {
-                        ErrorResponse errorResponse = getErrorResponse(response);
-                        if (null != errorResponse) {
-                            String errors = "[";
-                            for (E error : errorResponse.getErrors()) {
-                                errors += error.toString() + ",";
-                            }
-                            errors += "]";
-                            logger.error(
-                                    "Code: " + errorResponse.getCode()
-                                            + ";\n\tMessage: \"" + errorResponse.getMessage()
-                                            + "\";\n\t" + errors
-                            );
-                        }
-                    }
-                    // exiting with error
-                    System.exit(1);
+                if (request.isError()) {
+                    onError(response);
                 }
 
                 Table table = getTableResponse(response);
@@ -198,11 +170,12 @@ class YandexClient extends AbstractClient {
                 String projectDirPath = System.getProperty("user.dir");
                 String tokenFilePath = projectDirPath + "/.access_token";
                 BufferedReader reader = new BufferedReader(new FileReader(tokenFilePath));
+                StringBuilder stringBuilder = new StringBuilder();
                 String line;
                 while (null != (line = reader.readLine())) {
-                    token += line;
+                    stringBuilder.append(line);
                 }
-                token = token.trim();
+                token = stringBuilder.toString().trim();
             } catch (IOException e) {
                 logger.debug(e.getMessage(), e);
                 throw new ClientException(e.getMessage(), e);
@@ -214,5 +187,52 @@ class YandexClient extends AbstractClient {
         }
 
         return token;
+    }
+
+    /**
+     * On error request handler
+     * Exiting application
+     *
+     * @param response error response content
+     */
+    private void onError(String response) {
+        logger.fatal("Got error response from yandex api. Application will be stopped.");
+        if (!response.isEmpty()) {
+            ErrorResponse errorResponse = getErrorResponse(response);
+            if (null != errorResponse) {
+                String errors = "[";
+                for (E error : errorResponse.getErrors()) {
+                    errors += error.toString() + ",";
+                }
+                errors += "]";
+                logger.error(
+                        "Code: " + errorResponse.getCode()
+                                + ";\n\tMessage: \"" + errorResponse.getMessage()
+                                + "\";\n\t" + errors
+                );
+            }
+        }
+        // exiting with error
+        System.exit(1);
+    }
+
+    /**
+     * Build request params
+     * @return
+     */
+    public static Map<String, String> getHttpQueryMap(Date from, Date to) {
+        Map<String, String> httpQueryMap = new HashMap<>();
+        httpQueryMap.put("dimensions", "ym:s:searchPhrase,ym:s:paramsLevel2");
+        httpQueryMap.put("metrics", "ym:s:visits");
+        httpQueryMap.put(
+                "filters",
+                "ym:s:<attribution>SourceEngineName=='Яндекс' AND ym:s:paramsLevel1=='gaClientId'"
+        );
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        httpQueryMap.put("date1", dateFormat.format(from));
+        httpQueryMap.put("date2", dateFormat.format(to));
+
+        return httpQueryMap;
     }
 }
