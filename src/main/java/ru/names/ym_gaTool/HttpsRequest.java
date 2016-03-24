@@ -11,27 +11,27 @@ import java.net.HttpURLConnection;
  *
  * @author kbogdanov 17.03.16
  */
-class HttpsConnection extends AbstractHttpConnection {
+class HttpsRequest extends AbstractHttpRequest {
 
-    private static Logger logger = Logger.getLogger("HttpsConnection");
+    private static Logger logger = Logger.getLogger("HttpsRequest");
 
-    public HttpsConnection(String url) throws HttpConnectionException {
+    public HttpsRequest(String url) throws HttpRequestException {
         super(url);
     }
 
     /**
      * @return https url connection object
-     * @throws HttpConnectionException
+     * @throws HttpRequestException
      */
     @Override
-    protected HttpURLConnection connection() throws HttpConnectionException {
+    protected HttpURLConnection connection() throws HttpRequestException {
         HttpsURLConnection connection = null;
         try {
             connection = (HttpsURLConnection) url.openConnection();
         } catch (IOException e) {
             String msg = "Failure to open a connection";
             logger.error(msg, e);
-            throw new HttpConnectionException(msg, e);
+            throw new HttpRequestException(msg, e);
         }
 
         return connection;
