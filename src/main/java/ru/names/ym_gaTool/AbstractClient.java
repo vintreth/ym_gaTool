@@ -2,13 +2,10 @@ package ru.names.ym_gaTool;
 
 import org.apache.log4j.Logger;
 
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 /**
  * @author kbogdanov 16.03.16
@@ -19,6 +16,7 @@ class AbstractClient {
 
     /**
      * Retrieves response from input stream
+     *
      * @param inputStream current input stream
      * @return server response
      * @throws ClientException
@@ -48,27 +46,5 @@ class AbstractClient {
         }
 
         return response.toString();
-    }
-
-    /**
-     * Generates url-encoded string with params
-     *
-     * @param httpQueryMap pair param name - value
-     * @throws ClientException
-     */
-    protected String buildHttpQuery(Map<String, String> httpQueryMap) throws ClientException {
-        List<String> httpQueryList = new ArrayList<>();
-        for (Map.Entry<String, String> entry : httpQueryMap.entrySet()) {
-            try {
-                httpQueryList.add(
-                        URLEncoder.encode(entry.getKey(), "UTF-8") + "=" + URLEncoder.encode(entry.getValue(), "UTF-8")
-                );
-            } catch (UnsupportedEncodingException e) {
-                logger.error("Failure to encode params", e);
-                throw new ClientException("Failure to encode params", e);
-            }
-        }
-
-        return String.join("&", httpQueryList);
     }
 }
