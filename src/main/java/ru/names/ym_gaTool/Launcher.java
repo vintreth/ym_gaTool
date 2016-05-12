@@ -18,18 +18,21 @@ public class Launcher {
      * @param args input params
      */
     public static void main(String[] args) {
-        Launcher launcher = new Launcher();
-        launcher.run();
+        Launcher.run();
     }
 
     /**
-     * Launch the application
+     * Launches the application
      */
-    private void run() {
+    private static void run() {
         logger.debug("Running the application");
         try {
+            ConfigurationManager configurationManager = new ConfigurationManager();
+            YandexConfig yandexConfig = configurationManager.getYandexConfig();
+
             logger.debug("Getting data from yandex api");
-            YandexClient yandexClient = new YandexClient();
+            YandexClient yandexClient = new YandexClient(yandexConfig);
+
             Date now = new Date();
             Date from = new Date(now.getTime() - 2 * 86400 * 1000);
             Date to = new Date(now.getTime() - 86400 * 1000);
@@ -44,9 +47,9 @@ public class Launcher {
                     Thread.sleep(1000);
                 }
             } catch (InterruptedException e) {
-                logger.error(e.getMessage(), e);
-                throw new BaseException(e.getMessage(), e);
             }
+        } catch (ConfigurationManagerException e) {
+            stop("Failure to load a configuration. Application will be stopped.");
         } catch (HttpException e) {
             logger.error("Caught HttpException: " + e.getStatus() + " " + e.getMessage(), e);
         } catch (BaseException e) {
@@ -54,6 +57,16 @@ public class Launcher {
         }
 
         logger.debug("Finish");
+    }
+
+    /**
+     * Stops the application in case of fatal error
+     * @param message error message
+     */
+    private static void stop(String message) {
+        logger.fatal(message);
+        logger.fatal("Exit 1");
+        System.exit(1);
     }
 
 }

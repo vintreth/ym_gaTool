@@ -19,15 +19,15 @@ import java.util.*;
  */
 class YandexClient extends AbstractClient {
 
-    private static final String AUTHORIZATION_URL = "https://oauth.yandex.ru/authorize";
-    private static final String CLIENT_ID = "NOT_A_PASSWORD_ACTUALLY";
-    private static final String PASSWORD = "NOT_A_PASSWORD_ACTUALLY";
-
-    public static final String API_URL_STAT = "https://api-metrika.yandex.ru/stat/v1/data/";
+    private static final String API_URL_STAT = "https://api-metrika.yandex.ru/stat/v1/data/";
     private static final String API_METHOD_BYTIME = "bytime";
     private static final String API_METHOD_TABLE = "";
 
-    private static final int YA_METRIKA_ID = NOT_A_PASSWORD_ACTUALLY;
+    private YandexConfig config;
+
+    public YandexClient(YandexConfig config) {
+        this.config = config;
+    }
 
     /**
      * This property must be accessed from token() method
@@ -46,7 +46,7 @@ class YandexClient extends AbstractClient {
     private String buildApiUrl(String apiMethod, Map<String, String> httpQuery)
             throws ClientException, HttpRequestException {
         String apiUrl = API_URL_STAT + apiMethod + '?';
-        httpQuery.put("id", String.valueOf(YA_METRIKA_ID));
+        httpQuery.put("id", String.valueOf(config.getYandexMetrikaId()));
         httpQuery.put("oauth_token", token());
 
         return apiUrl + AbstractHttpRequest.buildHttpQuery(httpQuery);
