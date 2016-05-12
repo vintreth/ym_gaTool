@@ -1,3 +1,4 @@
 .idea
 target/*
 !target/ym_gaTool-*
+yandex.cfg.json
