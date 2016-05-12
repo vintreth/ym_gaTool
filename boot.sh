@@ -5,10 +5,10 @@ cd ${DIR}
 
 version="1.0"
 
-for file in target/*.jar
+for file in build/*.jar
 do
     version=`echo ${file} | sed 's/.*\-\([0-9\.]\+\)\.jar/\1/'`
 done
 
 echo booting version ${version}
-java -jar ${DIR}/target/ym_gaTool-${version}.jar
+java -jar ${DIR}/build/ym_gaTool-${version}.jar
