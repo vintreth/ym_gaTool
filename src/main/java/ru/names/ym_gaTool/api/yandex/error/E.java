@@ -1,5 +1,6 @@
 package ru.names.ym_gaTool.api.yandex.error;
 
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
@@ -7,6 +8,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
  *
  * @author kbogdanov 17.03.16
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class E {
 
     @JsonProperty("error_type")

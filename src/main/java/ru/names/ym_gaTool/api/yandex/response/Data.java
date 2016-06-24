@@ -1,10 +1,13 @@
 package ru.names.ym_gaTool.api.yandex.response;
 
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
+
 /**
  * Representation of yandex api table method response
  *
  * @author kbogdanov 16.03.16
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Data {
 
     private Dimension[] dimensions;

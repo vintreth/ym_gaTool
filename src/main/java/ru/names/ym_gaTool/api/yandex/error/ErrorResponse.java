@@ -1,10 +1,13 @@
 package ru.names.ym_gaTool.api.yandex.error;
 
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
+
 /**
  * Representation of yandex metrics api error response object
  *
  * @author kbogdanov 17.03.16
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ErrorResponse {
 
     private E[] errors;

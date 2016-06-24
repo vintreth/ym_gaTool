@@ -6,6 +6,10 @@ import org.codehaus.jackson.map.ObjectMapper;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
 
 /**
  * Class for loading and getting configuration instances
@@ -14,8 +18,41 @@ import java.io.IOException;
  */
 class ConfigurationManager {
 
+    private List<JsonConfiguration> configurations = Arrays.asList(
+            new YandexConfig(),
+            new ExceptionHandlerConfig()
+    );
+
     private static Logger logger = Logger.getLogger("ConfigurationManager");
 
+    public ConfigurationManager() throws ConfigurationManagerException {
+        loadAll();
+    }
+
+    /**
+     * Loads all configs from configurations list
+     *
+     * @throws ConfigurationManagerException
+     */
+    private void loadAll() throws ConfigurationManagerException {
+        ListIterator<JsonConfiguration> iterator = configurations.listIterator();
+        while (iterator.hasNext()) {
+            JsonConfiguration configuration = iterator.next();
+            logger.debug("Initializing " + configuration.getClass().getName() + " configuration");
+
+            iterator.set(loadJsonConfiguration(configuration));
+        }
+    }
+
+    /**
+     * Retrieves configuration file and load config data
+     *
+     * @param emptyConfiguration empty config instance
+     *
+     * @return loaded config instance
+     *
+     * @throws ConfigurationManagerException
+     */
     private JsonConfiguration loadJsonConfiguration(JsonConfiguration emptyConfiguration)
             throws ConfigurationManagerException {
 
@@ -54,13 +91,16 @@ class ConfigurationManager {
     }
 
     /**
-     * Retrieves yandex configuration file and creates YandexConfig instance
-     *
      * @return data loaded YandexClient instance
      */
-    public YandexConfig getYandexConfig() throws ConfigurationManagerException {
-        logger.debug("Initializing yandex configuration");
+    public YandexConfig getYandexConfig() {
+        return (YandexConfig) configurations.get(0);
+    }
 
-        return (YandexConfig) loadJsonConfiguration(new YandexConfig());
+    /**
+     * @return data loaded config instance
+     */
+    public ExceptionHandlerConfig getExceptionHandlerConfig() {
+        return (ExceptionHandlerConfig) configurations.get(1);
     }
 }
