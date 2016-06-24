@@ -10,12 +10,17 @@ import java.util.List;
  */
 public class Launcher {
 
+    private static ConfigurationManager configurationManager;
+
     private static Logger logger = Logger.getLogger("Launcher");
 
     /**
      * Main method
      *
      * @param args input params
+     *             todo
+     *             args[0] some string, this is a yandex api access token (it also may persists in .access_token file)
+     *             args[1] 0 or 1, this is a test mode, no sending real data
      */
     public static void main(String[] args) {
         Launcher.run();
@@ -27,7 +32,7 @@ public class Launcher {
     private static void run() {
         logger.debug("Running the application");
         try {
-            ConfigurationManager configurationManager = new ConfigurationManager();
+            configurationManager = new ConfigurationManager();
             YandexConfig yandexConfig = configurationManager.getYandexConfig();
 
             logger.debug("Getting data from yandex api");
@@ -49,11 +54,11 @@ public class Launcher {
             } catch (InterruptedException e) {
             }
         } catch (ConfigurationManagerException e) {
-            stop("Failure to load a configuration. Application will be stopped.");
+            stop("Failure to load a configuration. Application will be stopped.", e);
         } catch (HttpException e) {
-            logger.error("Caught HttpException: " + e.getStatus() + " " + e.getMessage(), e);
+            onException("Caught HttpException: " + e.getStatus() + " " + e.getMessage(), e);
         } catch (BaseException e) {
-            logger.error(e.getMessage(), e);
+            onException(e.getMessage(), e);
         }
 
         logger.debug("Finish");
@@ -61,12 +66,25 @@ public class Launcher {
 
     /**
      * Stops the application in case of fatal error
+     *
      * @param message error message
      */
-    private static void stop(String message) {
-        logger.fatal(message);
+    private static void stop(String message, Throwable cause) {
+        logger.fatal(message, cause);
         logger.fatal("Exit 1");
+
+        new ExceptionHandler(configurationManager.getExceptionHandlerConfig(), message, cause).sendNotifications();
+
         System.exit(1);
+    }
+
+    /**
+     * Raises in case of exception
+     *
+     * @param cause cause object
+     */
+    private static void onException(String errorMessage, Throwable cause) {
+        new ExceptionHandler(configurationManager.getExceptionHandlerConfig(), errorMessage, cause).handleCause();
     }
 
 }

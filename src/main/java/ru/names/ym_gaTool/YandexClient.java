@@ -109,7 +109,7 @@ class YandexClient extends AbstractClient {
         try {
             table = objectMapper.readValue(json, Table.class);
         } catch (IOException e) {
-            String msg = "Failure to parse json";
+            String msg = "Failure to parse json " + json;
             logger.error(msg, e);
             throw new ClientException(msg, e);
         }
