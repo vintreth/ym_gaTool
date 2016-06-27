@@ -1,9 +1,9 @@
-package ru.names.ym_gaTool;
+package ru.names.ym_gaTool.configuration;
 
 /**
  * @author kbogdanov 12.05.16
  */
-class ConfigurationManagerException extends Throwable {
+public class ConfigurationManagerException extends Throwable {
 
     public ConfigurationManagerException(String message) {
         super(message);

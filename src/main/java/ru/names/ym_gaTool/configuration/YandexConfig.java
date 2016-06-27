@@ -1,25 +1,39 @@
-package ru.names.ym_gaTool;
+package ru.names.ym_gaTool.configuration;
+
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 
 /**
  * Config implementation for yandex client
  *
  * @author kbogdanov 12.05.16
  */
-class YandexConfig implements JsonConfiguration {
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class YandexConfig implements JsonConfiguration {
 
-    /** Name of config file in the root directory */
+    /**
+     * Name of config file in the root directory
+     */
     private static final String FILE_NAME = "yandex.cfg.json";
 
-    /** Base url for authorization and getting token */
+    /**
+     * Base url for authorization and getting token
+     */
     private String authorizationUrl;
-    /** Yandex application identifier */
+    /**
+     * Yandex application identifier
+     */
     private String clientId;
-    /** Yandex application password */
+    /**
+     * Yandex application password
+     */
     private String password;
-    /** Yandex metrika counter identifier */
+    /**
+     * Yandex metrika counter identifier
+     */
     private int yandexMetrikaId;
 
-    public YandexConfig() {}
+    public YandexConfig() {
+    }
 
     @Override
     public String getFileName() {
