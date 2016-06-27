@@ -1,7 +1,8 @@
 {
   "notificationsEnabled": true,
   "recipients": [
-    "kbogdanov@names.ru"
+    "development@names.ru",
+    "marketing@names.ru"
   ],
   "fromMail": "ymgatool@names.ru",
   "mailSubject": "Перехвачено исключение %s",

@@ -52,6 +52,7 @@ class MailSender {
 
             StringBuilder builder = new StringBuilder();
             for (String recipient : context.recipients) {
+                builder.append(",");
                 builder.append(recipient);
             }
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(builder.toString()));
