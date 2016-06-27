@@ -6,6 +6,7 @@ import ru.names.ym_gaTool.api.yandex.error.E;
 import ru.names.ym_gaTool.api.yandex.error.ErrorResponse;
 import ru.names.ym_gaTool.api.yandex.response.Data;
 import ru.names.ym_gaTool.api.yandex.response.Table;
+import ru.names.ym_gaTool.configuration.YandexConfig;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -57,7 +58,8 @@ class YandexClient extends AbstractClient {
      *
      * @throws ClientException
      */
-    public List<ClientPhrase> getClientPhrases(Date from, Date to) throws ClientException, HttpRequestException {
+    public List<ClientPhrase> getClientPhrases(Date from, Date to)
+            throws ClientException, HttpRequestException, ErrorResponseException {
         logger.debug("Retrieving client phrases");
 
         Map<String, String> httpQueryMap = getHttpQueryMap(from, to);
@@ -83,7 +85,10 @@ class YandexClient extends AbstractClient {
                 String response = getResponse(inputStream);
 
                 if (request.isError()) {
-                    onError(response);
+                    throw new ErrorResponseException(
+                            "Got error response from yandex api. Application will be stopped.",
+                            response
+                    );
                 }
 
                 Table table = getTableResponse(response);
@@ -143,7 +148,7 @@ class YandexClient extends AbstractClient {
      *
      * @param json json-formatted string
      */
-    private ErrorResponse getErrorResponse(String json) {
+    public static ErrorResponse getErrorResponse(String json) {
         try {
             logger.debug("Parsing error json");
             ObjectMapper objectMapper = new ObjectMapper();
@@ -187,33 +192,6 @@ class YandexClient extends AbstractClient {
         }
 
         return token;
-    }
-
-    /**
-     * On error request handler
-     * Exiting application
-     *
-     * @param response error response content
-     */
-    private void onError(String response) {
-        logger.fatal("Got error response from yandex api. Application will be stopped.");
-        if (!response.isEmpty()) {
-            ErrorResponse errorResponse = getErrorResponse(response);
-            if (null != errorResponse) {
-                String errors = "[";
-                for (E error : errorResponse.getErrors()) {
-                    errors += error.toString() + ",";
-                }
-                errors += "]";
-                logger.error(
-                        "Code: " + errorResponse.getCode()
-                                + ";\n\tMessage: \"" + errorResponse.getMessage()
-                                + "\";\n\t" + errors
-                );
-            }
-        }
-        // exiting with error
-        System.exit(1);
     }
 
     /**

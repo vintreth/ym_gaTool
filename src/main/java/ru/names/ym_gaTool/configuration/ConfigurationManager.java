@@ -1,4 +1,4 @@
-package ru.names.ym_gaTool;
+package ru.names.ym_gaTool.configuration;
 
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -6,22 +6,22 @@ import org.codehaus.jackson.map.ObjectMapper;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
+import java.util.*;
 
 /**
  * Class for loading and getting configuration instances
  *
  * @author kbogdanov 12.05.16
  */
-class ConfigurationManager {
+public class ConfigurationManager {
 
-    private List<JsonConfiguration> configurations = Arrays.asList(
-            new YandexConfig(),
-            new ExceptionHandlerConfig()
-    );
+    private Map<String, JsonConfiguration> configurations = new HashMap<>();
+
+    {
+        configurations.put("yandexConfig", new YandexConfig());
+        configurations.put("exceptionHandlerConfig", new ExceptionHandlerConfig());
+        configurations.put("mailSenderConfig", new MailSenderConfig());
+    }
 
     private static Logger logger = Logger.getLogger("ConfigurationManager");
 
@@ -35,12 +35,11 @@ class ConfigurationManager {
      * @throws ConfigurationManagerException
      */
     private void loadAll() throws ConfigurationManagerException {
-        ListIterator<JsonConfiguration> iterator = configurations.listIterator();
-        while (iterator.hasNext()) {
-            JsonConfiguration configuration = iterator.next();
+        for (Map.Entry<String, JsonConfiguration> entry : configurations.entrySet()) {
+            JsonConfiguration configuration = entry.getValue();
             logger.debug("Initializing " + configuration.getClass().getName() + " configuration");
 
-            iterator.set(loadJsonConfiguration(configuration));
+            configurations.put(entry.getKey(), loadJsonConfiguration(configuration));
         }
     }
 
@@ -94,13 +93,20 @@ class ConfigurationManager {
      * @return data loaded YandexClient instance
      */
     public YandexConfig getYandexConfig() {
-        return (YandexConfig) configurations.get(0);
+        return (YandexConfig) configurations.get("yandexConfig");
     }
 
     /**
      * @return data loaded config instance
      */
     public ExceptionHandlerConfig getExceptionHandlerConfig() {
-        return (ExceptionHandlerConfig) configurations.get(1);
+        return (ExceptionHandlerConfig) configurations.get("exceptionHandlerConfig");
+    }
+
+    /**
+     * @return data loaded MailSenderConfig instance
+     */
+    public MailSenderConfig getMailSenderConfig() {
+        return (MailSenderConfig) configurations.get("mailSenderConfig");
     }
 }

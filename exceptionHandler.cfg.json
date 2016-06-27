@@ -1,6 +1,9 @@
 {
   "notificationsEnabled": true,
-  "mails": [
+  "recipients": [
     "kbogdanov@names.ru"
-  ]
+  ],
+  "fromMail": "ymgatool@names.ru",
+  "mailSubject": "Перехвачено исключение %s",
+  "mailText": "Подробности: \n%s"
 }
