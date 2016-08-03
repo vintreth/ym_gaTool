@@ -9,13 +9,4 @@ import java.util.Date;
  */
 public class HttpsRequestTest {
 
-    @Test(timeout = 10000)
-    public void testDoGet() throws Exception {
-
-    }
-
-    @Test(timeout = 10000)
-    public void testDoPost() throws Exception {
-
-    }
 }
